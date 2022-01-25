@@ -7,9 +7,9 @@ fi
 if [ ! -d "$url/recon" ];then
 	mkdir $url/recon
 fi
-#    if [ ! -d '$url/recon/eyewitness' ];then
-#        mkdir $url/recon/eyewitness
-#    fi
+if [ ! -d '$url/recon/eyewitness' ];then
+        mkdir $url/recon/eyewitness
+fi
 if [ ! -d "$url/recon/scans" ];then
 	mkdir $url/recon/scans
 fi
@@ -42,10 +42,10 @@ rm $url/recon/assets.txt
 
 #NOTE: You can use both AssetFinder and AMASS its up to you.
 
-#echo "[+] Double checking for subdomains with amass..."
-#amass enum -d $url >> $url/recon/f.txt
-#sort -u $url/recon/f.txt >> $url/recon/final.txt
-#rm $url/recon/f.txt
+echo "[+] Double checking for subdomains with amass..."
+amass enum -d $url >> $url/recon/f.txt
+sort -u $url/recon/f.txt >> $url/recon/final.txt
+rm $url/recon/f.txt
 
 echo "[+] Probing for alive domains..."
 cat $url/recon/final.txt | sort -u | httprobe -s -p https:443 | sed 's/https\?:\/\///' | tr -d ':443' >> $url/recon/httprobe/a.txt
@@ -60,8 +60,8 @@ fi
 
 subjack -w $url/recon/final.txt -t 100 -timeout 30 -ssl -c ~/go/src/github.com/haccer/subjack/fingerprints.json -v 3 -o $url/recon/potential_takeovers/potential_takeovers.txt
 
-#echo "[+] Scanning for open ports..."
-#nmap -iL $url/recon/httprobe/alive.txt -T4 -oA $url/recon/scans/scanned.txt
+echo "[+] Scanning for open ports..."
+nmap -iL $url/recon/httprobe/alive.txt -T4 -oA $url/recon/scans/scanned.txt
 
 echo "[+] Scraping wayback data..."
 cat $url/recon/final.txt | waybackurls >> $url/recon/wayback/wayback_output.txt

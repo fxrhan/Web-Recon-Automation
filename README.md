@@ -26,7 +26,7 @@ For this script to work you need to have the following tools installed on you ma
 - <p><a href="https://github.com/tomnomnom/waybackurls">WaybackUrls</a></p>
 - <p><a href="https://github.com/aboul3la/Sublist3r">Sublist3r</a></p>
 - <p><a href="https://github.com/FortyNorthSecurity/EyeWitness">EyeWitness</a></p>
--  Also have GoLang installed on you machine.
+-  Also, have GoLang installed on you machine.
 
 # Wait a min
 As usual, this is an open-source project. Feel free to make any changes are per your specific needs. <br>

@@ -1,33 +1,47 @@
-# Web-Recon-Automation
-A bash script to automate the necessary Reconnaissance task for websites. <br>
-NOTE: This is not some major project. I just created this script because in my opinion the Reconnaissance Phase was too time consuming and I had to write almost the same set of commands on different websites. <br>
-This scirpt automates that process and save your precious time.
+# Automated Reconnaissance Script
+## Overview
+This Bash script automates the reconnaissance phase for penetration testing and bug bounty hunting. It identifies subdomains, checks for alive domains, scans for potential vulnerabilities, and gathers useful data like wayback URLs, open ports, and JavaScript files. 
+The script is optimized for efficiency and uses popular tools to streamline the reconnaissance process.
+## Features
+- Harvests subdomains using **AssetFinder** and **Amass**.
+- Checks for alive domains with **httprobe**.
+- Scans for potential subdomain takeovers using **Subjack**.
+- Identifies open ports using **Nmap**.
+- Scrapes Wayback Machine data for parameters and file extensions.
+- Categorizes important files (e.g., `.js`, `.json`, `.php`) for further analysis.
+- Generates screenshots of live domains with **EyeWitness**.
+## Dependencies
+Ensure the following tools are installed and added to your `PATH`:
+- [AssetFinder](https://github.com/tomnomnom/assetfinder)
+- [Amass](https://github.com/OWASP/Amass)
+- [httprobe](https://github.com/tomnomnom/httprobe)
+- [Subjack](https://github.com/haccer/subjack)
+- [Nmap](https://nmap.org/)
+- [Waybackurls](https://github.com/tomnomnom/waybackurls)
+- [EyeWitness](https://github.com/FortyNorthSecurity/EyeWitness)
+## Setup
+1. Clone the repository or download the script.
+2. Ensure the script has execute permissions:
+   ```bash
+   chmod +x recon_script.sh
+## Usage
+Run the script with the target domain as an argument:
+```bash
+./recon_script.sh <target_domain>
+For example:
+./recon_script.sh google.com
+```
+## Customization
+You can modify the script to include additional tools or steps:
+- Add more file extensions for extraction.
+- Integrate custom tools or APIs.
+## Disclaimer
+This script is intended for ethical hacking, penetration testing, and bug bounty purposes with proper authorization. Unauthorized usage against targets is illegal and unethical.
+## Contributing
+Feel free to submit issues, suggest features, or create pull requests to improve the script.
+Copy
 
-# What does this script do?
-- Harvests all the Sub-domains with Assetfinder and Amass. (It also filters duplicate subdomains)
-- Checks if the domains discovered are working or not.
-- Checks for possible Sub-domain takeover using Subjack tool.
-- Scans all the Sub-domains for open ports with Nmap.
-- Scrapes wayback data and compile all possible parameters in wayback data.
-- Runs EyeWitness against all the compiled domains.
 
-# Usage
-- Open the Linux/Mac terminal and run the following command :
-- ``` chmod +x recon.sh ``` 
-- ``` sudo ./recon.sh domain-name ```
-- Now just sit back and enjoy your cup of coffee and let it do your work.
 
-# Requirements
-For this script to work you need to have the following tools installed on you machine :-
-- <p> <a href="https://github.com/tomnomnom/assetfinder">AssetFinder</a></p>
-- <p><a href="https://github.com/OWASP/Amass">Amass</a></p>
-- <p><a href="https://github.com/tomnomnom/httprobe">HTTPROBE</a></p>
-- <p><a href="https://github.com/haccer/subjack">Subjack</a></p>
-- <p><a href="https://github.com/tomnomnom/waybackurls">WaybackUrls</a></p>
-- <p><a href="https://github.com/aboul3la/Sublist3r">Sublist3r</a></p>
-- <p><a href="https://github.com/FortyNorthSecurity/EyeWitness">EyeWitness</a></p>
--  Also, have GoLang installed on you machine.
 
-# Wait a min
-As usual, this is an open-source project. Feel free to make any changes are per your specific needs. <br>
-Happy Hacking :)
+

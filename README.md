@@ -31,6 +31,29 @@ Run the script with the target domain as an argument:
 For example:
 ./recon_script.sh google.com
 ```
+## Generated Output
+```bash
+<target_domain>/
+└── recon/
+    ├── eyewitness/
+    ├── httprobe/
+    │   └── alive.txt
+    ├── potential_takeovers/
+    │   └── potential_takeovers.txt
+    ├── scans/
+    │   └── scanned.txt
+    ├── wayback/
+    │   ├── wayback_output.txt
+    │   ├── params/
+    │   │   └── wayback_params.txt
+    │   └── extensions/
+    │       ├── js.txt
+    │       ├── php.txt
+    │       ├── json.txt
+    │       ├── jsp.txt
+    │       └── aspx.txt
+    └── final.txt
+```
 ## Customization
 You can modify the script to include additional tools or steps:
 - Add more file extensions for extraction.
@@ -39,7 +62,8 @@ You can modify the script to include additional tools or steps:
 This script is intended for ethical hacking, penetration testing, and bug bounty purposes with proper authorization. Unauthorized usage against targets is illegal and unethical.
 ## Contributing
 Feel free to submit issues, suggest features, or create pull requests to improve the script.
-Copy
+
+
 
 
 

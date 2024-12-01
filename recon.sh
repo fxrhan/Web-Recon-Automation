@@ -1,108 +1,80 @@
-#!/bin/bash	
+#!/bin/bash
+
+# Check if a URL is provided, otherwise exit with usage instructions
+if [ -z "$1" ]; then
+    echo "Usage: $0 <url>"
+    exit 1
+fi
 
 url=$1
-if [ ! -d "$url" ];then
-	mkdir $url
-fi
-if [ ! -d "$url/recon" ];then
-	mkdir $url/recon
-fi
-if [ ! -d '$url/recon/eyewitness' ];then
-        mkdir $url/recon/eyewitness
-fi
-if [ ! -d "$url/recon/scans" ];then
-	mkdir $url/recon/scans
-fi
-if [ ! -d "$url/recon/httprobe" ];then
-	mkdir $url/recon/httprobe
-fi
-if [ ! -d "$url/recon/potential_takeovers" ];then
-	mkdir $url/recon/potential_takeovers
-fi
-if [ ! -d "$url/recon/wayback" ];then
-	mkdir $url/recon/wayback
-fi
-if [ ! -d "$url/recon/wayback/params" ];then
-	mkdir $url/recon/wayback/params
-fi
-if [ ! -d "$url/recon/wayback/extensions" ];then
-	mkdir $url/recon/wayback/extensions
-fi
-if [ ! -f "$url/recon/httprobe/alive.txt" ];then
-	touch $url/recon/httprobe/alive.txt
-fi
-if [ ! -f "$url/recon/final.txt" ];then
-	touch $url/recon/final.txt
-fi
 
+# Function to create directories if they do not exist
+create_dir() {
+    [ ! -d "$1" ] && mkdir -p "$1"
+}
+
+# Setting up directory structure
+echo "[+] Setting up directories..."
+create_dir "$url/recon/eyewitness"       # For storing screenshots from EyeWitness
+create_dir "$url/recon/scans"            # For storing Nmap scan results
+create_dir "$url/recon/httprobe"         # For storing live domain results
+create_dir "$url/recon/potential_takeovers" # For storing potential takeover findings
+create_dir "$url/recon/wayback/params"   # For storing parameters extracted from Wayback data
+create_dir "$url/recon/wayback/extensions" # For categorizing Wayback file extensions
+
+# Ensure required files exist for downstream processing
+touch "$url/recon/httprobe/alive.txt" "$url/recon/final.txt"
+
+# Subdomain enumeration using assetfinder
 echo "[+] Harvesting subdomains with assetfinder..."
-assetfinder $url >> $url/recon/assets.txt
-cat $url/recon/assets.txt | grep $1 >> $url/recon/final.txt
-rm $url/recon/assets.txt
+assetfinder --subs-only "$url" | grep "$url" >> "$url/recon/final.txt" &
 
-#NOTE: You can use both AssetFinder and AMASS its up to you.
+# Subdomain enumeration using amass
+echo "[+] Double-checking with amass..."
+amass enum -d "$url" >> "$url/recon/final.txt" &
+wait # Wait for background processes to finish
 
-echo "[+] Double checking for subdomains with amass..."
-amass enum -d $url >> $url/recon/f.txt
-sort -u $url/recon/f.txt >> $url/recon/final.txt
-rm $url/recon/f.txt
+# Deduplicate subdomains to avoid redundant processing
+echo "[+] Removing duplicate subdomains..."
+sort -u "$url/recon/final.txt" -o "$url/recon/final.txt"
 
+# Probing for live domains with httprobe
 echo "[+] Probing for alive domains..."
-cat $url/recon/final.txt | sort -u | httprobe -s -p https:443 | sed 's/https\?:\/\///' | tr -d ':443' >> $url/recon/httprobe/a.txt
-sort -u $url/recon/httprobe/a.txt > $url/recon/httprobe/alive.txt
-rm $url/recon/httprobe/a.txt
+cat "$url/recon/final.txt" | httprobe -c 50 | sed 's|https\?://||' > "$url/recon/httprobe/alive.txt"
 
-echo "[+] Checking for possible subdomain takeover..."
+# Subdomain takeover check using Subjack
+echo "[+] Checking for subdomain takeovers..."
+subjack -w "$url/recon/final.txt" -t 100 -timeout 30 -ssl \
+-c ~/go/src/github.com/haccer/subjack/fingerprints.json \
+-o "$url/recon/potential_takeovers/potential_takeovers.txt"
 
-if [ ! -f "$url/recon/potential_takeovers/potential_takeovers.txt" ];then
-	touch $url/recon/potential_takeovers/potential_takeovers.txt
-fi
-
-subjack -w $url/recon/final.txt -t 100 -timeout 30 -ssl -c ~/go/src/github.com/haccer/subjack/fingerprints.json -v 3 -o $url/recon/potential_takeovers/potential_takeovers.txt
-
+# Port scanning with Nmap
 echo "[+] Scanning for open ports..."
-nmap -iL $url/recon/httprobe/alive.txt -T4 -oA $url/recon/scans/scanned.txt
+nmap -iL "$url/recon/httprobe/alive.txt" -T4 -oA "$url/recon/scans/scanned"
 
-echo "[+] Scraping wayback data..."
-cat $url/recon/final.txt | waybackurls >> $url/recon/wayback/wayback_output.txt
-sort -u $url/recon/wayback/wayback_output.txt
+# Scraping Wayback Machine data
+echo "[+] Scraping Wayback Machine data..."
+cat "$url/recon/final.txt" | waybackurls | sort -u > "$url/recon/wayback/wayback_output.txt"
 
-echo "[+] Pulling and compiling all possible params found in wayback data..."
-cat $url/recon/wayback/wayback_output.txt | grep '?*=' | cut -d '=' -f 1 | sort -u >> $url/recon/wayback/params/wayback_params.txt
-for line in $(cat $url/recon/wayback/params/wayback_params.txt);do echo $line'=';done
+# Extracting parameters from Wayback Machine data
+echo "[+] Extracting parameters from Wayback Machine data..."
+cat "$url/recon/wayback/wayback_output.txt" | grep '?*=' | cut -d '=' -f 1 | sort -u > "$url/recon/wayback/params/wayback_params.txt"
 
-echo "[+] Pulling and compiling js/php/aspx/jsp/json files from wayback output..."
-for line in $(cat $url/recon/wayback/wayback_output.txt);do
-	ext="${line##*.}"
-	if [[ "$ext" == "js" ]]; then
-		echo $line >> $url/recon/wayback/extensions/js1.txt
-		sort -u $url/recon/wayback/extensions/js1.txt >> $url/recon/wayback/extensions/js.txt
-	fi
-	if [[ "$ext" == "html" ]];then
-		echo $line >> $url/recon/wayback/extensions/jsp1.txt
-		sort -u $url/recon/wayback/extensions/jsp1.txt >> $url/recon/wayback/extensions/jsp.txt
-	fi
-	if [[ "$ext" == "json" ]];then
-		echo $line >> $url/recon/wayback/extensions/json1.txt
-		sort -u $url/recon/wayback/extensions/json1.txt >> $url/recon/wayback/extensions/json.txt
-	fi
-	if [[ "$ext" == "php" ]];then
-		echo $line >> $url/recon/wayback/extensions/php1.txt
-		sort -u $url/recon/wayback/extensions/php1.txt >> $url/recon/wayback/extensions/php.txt
-	fi
-	if [[ "$ext" == "aspx" ]];then
-		echo $line >> $url/recon/wayback/extensions/aspx1.txt
-		sort -u $url/recon/wayback/extensions/aspx1.txt >> $url/recon/wayback/extensions/aspx.txt
-	fi
-done
+# Categorizing files by extensions
+echo "[+] Extracting specific file extensions from Wayback Machine data..."
+while read -r line; do
+    ext="${line##*.}"
+    case "$ext" in
+        js) echo "$line" >> "$url/recon/wayback/extensions/js.txt" ;;
+        json) echo "$line" >> "$url/recon/wayback/extensions/json.txt" ;;
+        php) echo "$line" >> "$url/recon/wayback/extensions/php.txt" ;;
+        aspx) echo "$line" >> "$url/recon/wayback/extensions/aspx.txt" ;;
+        jsp) echo "$line" >> "$url/recon/wayback/extensions/jsp.txt" ;;
+    esac
+done < "$url/recon/wayback/wayback_output.txt"
 
-rm $url/recon/wayback/extensions/js1.txt
-rm $url/recon/wayback/extensions/jsp1.txt
-rm $url/recon/wayback/extensions/json1.txt
-rm $url/recon/wayback/extensions/php1.txt
-rm $url/recon/wayback/extensions/aspx1.txt
+# Running EyeWitness for screenshots
+echo "[+] Running EyeWitness on live domains..."
+python3 EyeWitness/EyeWitness.py --web -f "$url/recon/httprobe/alive.txt" -d "$url/recon/eyewitness" --resolve
 
-echo "[+] Running eyewitness against all compiled domains..."
-python3 EyeWitness/EyeWitness.py --web -f $url/recon/httprobe/alive.txt -d $url/recon/eyewitness --resolve
-
-echo "[+] Recon Stage Completed :)"
+echo "[+] Recon stage completed successfully!"

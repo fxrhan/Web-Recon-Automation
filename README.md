@@ -1,71 +1,80 @@
-# Automated Reconnaissance Script
-## Overview
-This Bash script automates the reconnaissance phase for penetration testing and bug bounty hunting. It identifies subdomains, checks for alive domains, scans for potential vulnerabilities, and gathers useful data like wayback URLs, open ports, and JavaScript files. 
-The script is optimized for efficiency and uses popular tools to streamline the reconnaissance process.
-## Features
-- Harvests subdomains using **AssetFinder** and **Amass**.
-- Checks for alive domains with **httprobe**.
-- Scans for potential subdomain takeovers using **Subjack**.
-- Identifies open ports using **Nmap**.
-- Scrapes Wayback Machine data for parameters and file extensions.
-- Categorizes important files (e.g., `.js`, `.json`, `.php`) for further analysis.
-- Generates screenshots of live domains with **EyeWitness**.
-## Dependencies
-Ensure the following tools are installed and added to your `PATH`:
-- [AssetFinder](https://github.com/tomnomnom/assetfinder)
-- [Amass](https://github.com/OWASP/Amass)
-- [httprobe](https://github.com/tomnomnom/httprobe)
-- [Subjack](https://github.com/haccer/subjack)
-- [Nmap](https://nmap.org/)
-- [Waybackurls](https://github.com/tomnomnom/waybackurls)
-- [EyeWitness](https://github.com/FortyNorthSecurity/EyeWitness)
-## Setup
-1. Clone the repository or download the script.
-2. Ensure the script has execute permissions:
-   ```bash
-   chmod +x recon_script.sh
-## Usage
-Run the script with the target domain as an argument:
+# Web Recon Automation
+
+A powerful, automated reconnaissance script for bug bounty hunters and penetration testers. This script streamlines the process of subdomain enumeration, live host discovery, vulnerability scanning, and reporting.
+
+## 🚀 Features
+
+*   **Automated Dependency Checks**: Ensures all required tools are installed before running.
+*   **Subdomain Enumeration**: Uses `subfinder` and `assetfinder` to discover subdomains.
+*   **Live Host Discovery**: Probes for alive hosts using `httprobe`.
+*   **Subdomain Takeover**: Checks for potential subdomain takeovers using `subjack`.
+*   **Port Scanning**: Scans for open ports using `nmap`.
+*   **Wayback Machine Recon**: Extracts parameters and interesting file extensions from the Wayback Machine.
+*   **Vulnerability Scanning**: Integrates `nuclei` for automated vulnerability detection.
+*   **Reporting**: Generates a summary Markdown report (`report.md`).
+
+## 🛠️ Tools Used
+
+Ensure you have the following tools installed and in your PATH:
+
+*   [Subfinder](https://github.com/projectdiscovery/subfinder)
+*   [Assetfinder](https://github.com/tomnomnom/assetfinder)
+*   [Httprobe](https://github.com/tomnomnom/httprobe)
+*   [Subjack](https://github.com/haccer/subjack)
+*   [Nmap](https://nmap.org/)
+*   [Waybackurls](https://github.com/tomnomnom/waybackurls)
+*   [Nuclei](https://github.com/projectdiscovery/nuclei)
+
+## 📥 Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/fxrhan/Web-Recon-Automation.git
+    cd Web-Recon-Automation
+    ```
+2.  Make the script executable:
+    ```bash
+    chmod +x recon.sh
+    ```
+
+## 📖 Usage
+
 ```bash
-./recon_script.sh <target_domain>
-For example:
-./recon_script.sh google.com
+./recon.sh -d <domain> [-o <output_dir>] [-s]
 ```
-## Generated Output
+
+### Options
+
+*   `-d <domain>`: Target domain (e.g., `example.com`). **Required**.
+*   `-o <output_dir>`: Custom output directory. Defaults to the domain name.
+*   `-s`: Silent mode. Suppresses the banner.
+*   `-h`: Show help message.
+
+### Example
+
 ```bash
-<target_domain>/
-└── recon/
-    ├── eyewitness/
-    ├── httprobe/
-    │   └── alive.txt
-    ├── potential_takeovers/
-    │   └── potential_takeovers.txt
-    ├── scans/
-    │   └── scanned.txt
-    ├── wayback/
-    │   ├── wayback_output.txt
-    │   ├── params/
-    │   │   └── wayback_params.txt
-    │   └── extensions/
-    │       ├── js.txt
-    │       ├── php.txt
-    │       ├── json.txt
-    │       ├── jsp.txt
-    │       └── aspx.txt
-    └── final.txt
+./recon.sh -d tesla.com
 ```
-## Customization
-You can modify the script to include additional tools or steps:
-- Add more file extensions for extraction.
-- Integrate custom tools or APIs.
-## Disclaimer
-This script is intended for ethical hacking, penetration testing, and bug bounty purposes with proper authorization. Unauthorized usage against targets is illegal and unethical.
-## Contributing
-Feel free to submit issues, suggest features, or create pull requests to improve the script.
 
+## 📂 Output Structure
 
+The script creates the following directory structure:
 
+```
+domain.com/
+├── recon/
+│   ├── final.txt                 # Unique subdomains
+│   ├── httprobe/
+│   │   └── alive.txt             # Live hosts
+│   ├── potential_takeovers/      # Takeover results
+│   ├── scans/                    # Nmap scans
+│   ├── wayback/                  # Wayback data
+│   │   ├── params/               # Extracted parameters
+│   │   └── extensions/           # File extensions (js, php, etc.)
+│   └── nuclei/                   # Nuclei report
+└── report.md                     # Summary report
+```
 
+## 📝 License
 
-
-
+This project is licensed under the MIT License.
